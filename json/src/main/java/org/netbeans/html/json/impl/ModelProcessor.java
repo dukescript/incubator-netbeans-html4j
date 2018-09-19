@@ -1115,6 +1115,7 @@ public final class ModelProcessor extends AbstractProcessor {
         List<? extends Element> enclosedElements,
         List<Object> functions
     ) {
+        final Types tu = processingEnv.getTypeUtils();
         boolean instance = clazz.getAnnotation(Model.class).instance();
         for (Element m : enclosedElements) {
             if (m.getKind() != ElementKind.METHOD) {
@@ -1158,7 +1159,11 @@ public final class ModelProcessor extends AbstractProcessor {
                             error("First parameter of @ModelOperation method must be " + className, m);
                             return false;
                         }
-                        args.add(ve.getSimpleName().toString());
+                        if (ve.asType().getKind() == TypeKind.ARRAY) {
+                            args.add("(Object) " + ve.getSimpleName().toString());
+                        } else {
+                            args.add(ve.getSimpleName().toString());
+                        }
                         body.append(sep).append("final ");
                         body.append(ve.asType().toString()).append(" ");
                         body.append(ve.toString());
@@ -1308,7 +1313,7 @@ public final class ModelProcessor extends AbstractProcessor {
                 if (expectsList == 1) {
                     args.add("arr");
                 } else if (expectsList == 2) {
-                    args.add("java.util.Arrays.asList(arr)");
+                    args.add("net.java.html.json.Models.asList(arr)");
                 } else {
                     args.add("arr[0]");
                 }
@@ -1501,7 +1506,7 @@ public final class ModelProcessor extends AbstractProcessor {
             String sep = "";
             for (String arg : args) {
                 body.append(sep);
-                if (arg.startsWith("arr") || arg.startsWith("java.util.Array")) {
+                if (arg.startsWith("arr") || arg.startsWith("net.java.html.json.Models.asList")) {
                     body.append("null");
                 } else {
                     body.append(arg);
